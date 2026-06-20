@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Reactor Studio — LingBot",
+  title: "Laksh — UAV World Model GCS · CelesticLabs",
   description:
-    "Action-controlled real-time world generation, powered by Reactor LingBot.",
+    "Laksh by CelesticLabs — a real-time interactive AI World Model ground control station for DRONE / UAV defence operations, powered by Reactor LingBot.",
 };
 
 export default function RootLayout({

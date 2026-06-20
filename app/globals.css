@@ -1,32 +1,39 @@
 @import "tailwindcss";
 
 /*
- * Reactor Studio design system.
- * A calm, warm, paper-light dashboard: white sidebar, soft sand viewport,
- * muted khaki accent, monospace section labels. Mirrors the Reactor demo.
+ * Laksh — Ground Control Station design system (CelesticLabs Pvt. Ltd.).
+ * A dark, tactical GCS aesthetic: near-black panels, phosphor-green telemetry,
+ * amber caution, red alert, monospace instrument labels. Built on top of the
+ * Reactor LingBot prototype's design tokens, evolved for defence / UAV ops.
  */
 :root {
-  --background: #f0efec;
-  --surface: #ffffff;
-  --surface-muted: #f7f6f3;
-  --viewport: #eceae6;
-  --foreground: #1b1a17;
-  --muted: #97948c;
-  --faint: #b7b4ac;
-  --label: #8d8a82;
-  --border: #e7e5df;
-  --border-strong: #dcd9d2;
+  --background: #0a0e0d;
+  --surface: #111614;
+  --surface-muted: #161d1a;
+  --surface-raised: #1b2421;
+  --viewport: #050706;
+  --foreground: #e6efe9;
+  --muted: #8a9a92;
+  --faint: #5a6b63;
+  --label: #6f8278;
+  --border: #1f2a26;
+  --border-strong: #2c3b35;
 
-  /* Warm khaki accent (Generate button, toggles, focus) */
-  --accent: #c7ba93;
-  --accent-hover: #bcae81;
-  --accent-active: #ab9d6f;
-  --accent-foreground: #3a3522;
-  --accent-soft: #efece0;
+  /* Phosphor-green tactical accent (primary HUD + Arm button) */
+  --accent: #2fe08a;
+  --accent-hover: #43e898;
+  --accent-active: #25c476;
+  --accent-foreground: #03130b;
+  --accent-soft: #0f231a;
 
+  /* Instrument signal colours */
+  --hud: #38e8a0;
+  --hud-dim: #1f7a55;
   --ready: #f0a324;
-  --danger: #c4604a;
-  --good: #7c9a6a;
+  --caution: #f0a324;
+  --danger: #ff4d4d;
+  --good: #2fe08a;
+  --info: #3da5ff;
 
   --radius: 8px;
 }
@@ -35,6 +42,7 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
   --color-viewport: var(--viewport);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
@@ -47,9 +55,13 @@
   --color-accent-active: var(--accent-active);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-hud: var(--hud);
+  --color-hud-dim: var(--hud-dim);
   --color-ready: var(--ready);
+  --color-caution: var(--caution);
   --color-danger: var(--danger);
   --color-good: var(--good);
+  --color-info: var(--info);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --radius-card: var(--radius);
@@ -71,14 +83,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Monospace, letter-spaced uppercase section label used throughout. */
+/* Monospace, letter-spaced uppercase instrument label used throughout. */
 .label-mono {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--label);
   font-weight: 500;
+}
+
+/* Phosphor readout — glanceable HUD numerals. */
+.hud-readout {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--hud);
+  text-shadow: 0 0 8px rgba(47, 224, 138, 0.35);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Thin custom scrollbars to keep panels quiet. */
@@ -114,7 +134,7 @@ body {
   white-space: nowrap;
 }
 .pill:hover {
-  background: #f0eee9;
+  background: var(--surface-raised);
   border-color: var(--border-strong);
 }
 .pill:active {
@@ -130,27 +150,53 @@ body {
   height: 38px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-muted);
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
   user-select: none;
   transition: all 0.1s ease;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 .keycap[data-active="true"] {
   background: var(--accent);
   border-color: var(--accent-active);
   color: var(--accent-foreground);
-  box-shadow: 0 1px 0 var(--accent-active);
+  box-shadow: 0 0 12px rgba(47, 224, 138, 0.4);
 }
 .keycap:not([data-disabled="true"]):hover {
   border-color: var(--border-strong);
   color: var(--foreground);
 }
 .keycap[data-disabled="true"] {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Tactical chip toggle for mission/atmosphere presets. */
+.tac-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+.tac-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.tac-chip[data-active="true"] {
+  border-color: var(--accent-active);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 @keyframes pulse-dot {
@@ -159,7 +205,7 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.3;
   }
 }
 .pulse-dot {
@@ -175,7 +221,33 @@ body {
   animation: spin 0.9s linear infinite;
 }
 
-/* Range slider matching the warm accent theme. */
+@keyframes alert-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.alert-flash {
+  animation: alert-flash 0.9s ease-in-out infinite;
+}
+
+/* Faint moving scanline sweep for the live feed (tactical sensor feel). */
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+.scan-sweep {
+  animation: scan-sweep 6s linear infinite;
+}
+
+/* Range slider matching the phosphor accent theme. */
 .reactor-range {
   -webkit-appearance: none;
   appearance: none;
@@ -191,19 +263,19 @@ body {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  background: var(--accent);
+  border: 1px solid var(--accent-active);
+  box-shadow: 0 0 8px rgba(47, 224, 138, 0.5);
   transition: border-color 0.12s ease;
 }
 .reactor-range::-webkit-slider-thumb:hover {
-  border-color: var(--accent-active);
+  border-color: var(--accent-hover);
 }
 .reactor-range::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  background: var(--accent);
+  border: 1px solid var(--accent-active);
+  box-shadow: 0 0 8px rgba(47, 224, 138, 0.5);
 }

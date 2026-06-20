@@ -131,6 +131,72 @@ export function Spinner(props: IconProps) {
   );
 }
 
+/** Laksh mark — a stylised UAV / target reticle. */
+export function LakshMark(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={20} height={20} {...props}>
+      <circle cx="12" cy="12" r="7.5" {...base} />
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" {...base} />
+      <path d="M12 8.5 15 13.5H9L12 8.5Z" {...base} fill="currentColor" />
+    </svg>
+  );
+}
+
+export function Crosshair(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <circle cx="12" cy="12" r="8" {...base} />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" {...base} />
+    </svg>
+  );
+}
+
+export function Target(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <circle cx="12" cy="12" r="9" {...base} />
+      <circle cx="12" cy="12" r="5" {...base} />
+      <circle cx="12" cy="12" r="1.4" {...base} fill="currentColor" />
+    </svg>
+  );
+}
+
+export function Gamepad(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <path d="M7 9h10a4 4 0 0 1 4 4 4 4 0 0 1-4 4c-1.3 0-2-1-3-1h-4c-1 0-1.7 1-3 1a4 4 0 0 1-4-4 4 4 0 0 1 4-4Z" {...base} />
+      <path d="M7 11v4M5 13h4M15.5 12h.01M17.5 14h.01" {...base} />
+    </svg>
+  );
+}
+
+export function Link(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <path d="M10 14a4 4 0 0 0 6 .5l2-2a4 4 0 0 0-6-6l-1 1" {...base} />
+      <path d="M14 10a4 4 0 0 0-6-.5l-2 2a4 4 0 0 0 6 6l1-1" {...base} />
+    </svg>
+  );
+}
+
+export function AlertTriangle(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <path d="M12 3 22 20H2L12 3Z" {...base} />
+      <path d="M12 10v5M12 17.5h.01" {...base} />
+    </svg>
+  );
+}
+
+export function MapPin(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={16} height={16} {...props}>
+      <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" {...base} />
+      <circle cx="12" cy="9" r="2.4" {...base} />
+    </svg>
+  );
+}
+
 export function ArrowKey({ dir, ...props }: IconProps & { dir: "up" | "down" | "left" | "right" }) {
   const d = {
     up: "M12 18V6M6 12l6-6 6 6",

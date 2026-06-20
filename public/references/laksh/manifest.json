@@ -1,0 +1,117 @@
+{
+  "name": "Laksh — Reference Seed Images",
+  "description": "Curated drone/UAV/aerial/defence reference seed images for the Laksh AI World Model dashboard (Reactor LingBot). Each image is intended as a SEED for an infinite navigable world generation, paired with a suggested LingBot prompt.",
+  "project": "Laksh by CelesticLabs",
+  "license_summary": "All images sourced from Unsplash and used under the Unsplash License — free for commercial and non-commercial use, no permission or attribution required (attribution still provided here as good practice).",
+  "count": 12,
+  "images": [
+    {
+      "filename": "aerial-coastal-recon.jpg",
+      "label": "Coastal Recon — Top-Down",
+      "prompt_seed": "A UAV holds a top-down hover over a tropical shoreline, surf breaking against pale sand as it scans the coastline for movement.",
+      "theme": "aerial/coastal drone POV",
+      "sourceUrl": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "aerial-desert-dunes.jpg",
+      "label": "Desert Dunes — Aerial",
+      "prompt_seed": "A reconnaissance drone glides low over endless rolling sand dunes at golden hour, tracking faint tracks across the open desert.",
+      "theme": "desert terrain",
+      "sourceUrl": "https://images.unsplash.com/photo-1542401886-65d6c61db217",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "desert-mesa-overwatch.jpg",
+      "label": "Desert Mesa — Overwatch",
+      "prompt_seed": "A UAV patrols a wide arid valley of red rock buttes and mesas, maintaining overwatch across the open desert basin.",
+      "theme": "desert terrain / surveillance",
+      "sourceUrl": "https://images.unsplash.com/photo-1509316785289-025f5b846b35",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "mountain-ridge-aerial.jpg",
+      "label": "Coastal Fjord Ridge — Aerial",
+      "prompt_seed": "A drone climbs along a steep coastal mountain ridge at sunrise, a narrow fjord glinting far below between jagged peaks.",
+      "theme": "mountain/coastal terrain from above",
+      "sourceUrl": "https://images.unsplash.com/photo-1542224566-6e85f2e6772f",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "foggy-valley.jpg",
+      "label": "Foggy Valley — Layered Ridges",
+      "prompt_seed": "A UAV drifts through hazy light over layered forested ridgelines, scanning a mist-filled valley for thermal signatures.",
+      "theme": "foggy scene",
+      "sourceUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "misty-cliff-corridor.jpg",
+      "label": "Misty Cliff Corridor",
+      "prompt_seed": "A drone follows a winding mountain road through a misty cliff corridor at dawn, tracing the route as fog rolls over the escarpment.",
+      "theme": "foggy / route surveillance",
+      "sourceUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "above-the-clouds.jpg",
+      "label": "Above The Clouds — Alpine",
+      "prompt_seed": "A high-altitude UAV cruises above a sea of clouds at dusk, snow peaks piercing the inversion layer along the horizon.",
+      "theme": "open sky / high altitude",
+      "sourceUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "night-city-surveillance.jpg",
+      "label": "Night City — Surveillance",
+      "prompt_seed": "A UAV loiters over a sprawling city grid at night, its sensor sweeping the glittering streets and skyline below.",
+      "theme": "urban surveillance / night",
+      "sourceUrl": "https://images.unsplash.com/photo-1444723121867-7a241cacace9",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "aerial-forest-lake.jpg",
+      "label": "Forest & Lake — Top-Down",
+      "prompt_seed": "A drone scans straight down over the boundary where dense forest meets a turquoise lake, mapping the treeline edge.",
+      "theme": "aerial drone POV terrain",
+      "sourceUrl": "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "urban-coastal-overhead.jpg",
+      "label": "Coastal City — Overhead",
+      "prompt_seed": "A high UAV passes over a coastal city and its offshore developments, surveying the waterfront installations and marina below.",
+      "theme": "urban surveillance / coastal installation",
+      "sourceUrl": "https://images.unsplash.com/photo-1518684079-3c830dcef090",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "night-sky-horizon.jpg",
+      "label": "Night Sky — Open Horizon",
+      "prompt_seed": "A UAV hovers under a vast star-filled sky over dark silhouetted hills, holding a quiet night watch on the horizon.",
+      "theme": "night / open sky horizon",
+      "sourceUrl": "https://images.unsplash.com/photo-1516571748831-5d81767b788d",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    },
+    {
+      "filename": "airfield-dusk.jpg",
+      "label": "Airfield — Dusk Standby",
+      "prompt_seed": "A drone taxis past an aircraft parked on a deserted airfield apron at dusk, the runway stretching into the low sun.",
+      "theme": "airfield / installation",
+      "sourceUrl": "https://images.unsplash.com/photo-1474302770737-173ee21bab63",
+      "source": "Unsplash",
+      "license": "Unsplash License"
+    }
+  ]
+}
