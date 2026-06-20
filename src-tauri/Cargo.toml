@@ -1,0 +1,28 @@
+[package]
+name = "laksh"
+version = "0.1.0"
+description = "Laksh — UAV World Model Ground Control Station (CelesticLabs)"
+authors = ["CelesticLabs"]
+edition = "2021"
+rust-version = "1.77.2"
+
+# The library that holds the app logic; the binary is a thin shim around it.
+[lib]
+name = "laksh_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# rustls keeps TLS self-contained (no system OpenSSL dependency) across targets.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+dotenvy = "0.15"
+
+[features]
+# This feature is used for production builds or when a dev server is not
+# specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

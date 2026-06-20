@@ -1,0 +1,6 @@
+===== PHASE 4: concurrency cap (open 5, probe 6th) =====
+  reached ready: 5/5  states={2: 'ready', 4: 'ready', 3: 'ready', 0: 'ready', 1: 'ready'}
+  probing 6th session…
+  6th session → REJECTED: RuntimeError: Failed to create session: 429 {"current":5,"error":"quota_exceeded","limit":5,"message":"quota exceeded: concurrent_sessions for model \"lingbot\" (limit=5, cur
+  cost: total READY ~19.1s ≈ 630 credits ≈ $0.0630
+COST_CREDITS=630

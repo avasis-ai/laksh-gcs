@@ -17,6 +17,11 @@
 /.next/
 /out/
 
+# tauri / rust
+/src-tauri/target/
+/src-tauri/gen/
+.tauri-build-stash/
+
 # production
 /build
 

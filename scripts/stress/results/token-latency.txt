@@ -1,0 +1,21 @@
+# Token infra latency — https://api.reactor.inc
+# key prefix: rk_c57… (redacted)
+
+## POST /tokens — 30 sequential
+  n=30 min=239.8 p50=679.4 p90=696.9 p95=725.8 p99=903.9 max=903.9 mean=590.4 ms
+  default token expires_at=1781977279 (TTL ~6h)
+## POST /tokens — burst of 5 concurrent
+  wall=792.9ms perReq p50=781.1 p95=787.8 max=787.8 ms  codes={"200":5}
+## POST /tokens — burst of 10 concurrent
+  wall=769.3ms perReq p50=672.6 p95=764.3 max=764.3 ms  codes={"200":10}
+## POST /tokens expires_after=60 — 10 sequential
+  p50=301.3 p95=703.4 max=703.4 ms
+
+## GET /pricing (direct, no auth)
+  status=200 latency=247.4ms
+  models: [{"id":"75c908ff-ffa2-4360-9fd6-85b181dd2d43","name":"helios","rate":{"amount_per_sec":17,"unit":"credits","denomination":"second"}},{"id":"c5ef2965-36f0-4da8-b629-60953f12d605","name":"lingbot","rate":{"amount_per_sec":33,"unit":"credits","denomination":"second"}},{"id":"8c2e8240-43c8-4599-9cea-409dfe3d9d35","name":"longlive-v2","rate":{"amount_per_sec":17,"unit":"credits","denomination":"second"}},{"id":"3f39b140-e0b4-4861-af69-f0b27884ee3a","name":"sana-streaming","rate":{"amount_per_sec":17,"unit":"credits","denomination":"second"}}]
+  settings: {"credits_per_dollar":10000,"purchase":{"min_dollars":1,"max_dollars":1000},"auto_topup":{"min_dollars":5},"max_account_credits":0}
+  >> lingbot rate = {"amount_per_sec":33,"unit":"credits","denomination":"second"}
+  upstream /pricing 10x: p50=679.4 p95=750.2 max=750.2 ms (our server caches this for 60s)
+
+# done (no GPU billed)

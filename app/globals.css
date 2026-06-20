@@ -2,40 +2,67 @@
 
 /*
  * Laksh — Ground Control Station design system (CelesticLabs Pvt. Ltd.).
- * A dark, tactical GCS aesthetic: near-black panels, phosphor-green telemetry,
- * amber caution, red alert, monospace instrument labels. Built on top of the
- * Reactor LingBot prototype's design tokens, evolved for defence / UAV ops.
+ * A dark, near-monochrome tactical GCS aesthetic: neutral cool-graphite panels,
+ * light-steel telemetry, and a single restrained desaturated steel accent.
+ * Colour is reserved for meaning — amber caution and red alert are the only
+ * saturated signals. Evolved from the Reactor LingBot prototype's tokens.
  */
 :root {
-  --background: #0a0e0d;
-  --surface: #111614;
-  --surface-muted: #161d1a;
-  --surface-raised: #1b2421;
-  --viewport: #050706;
-  --foreground: #e6efe9;
-  --muted: #8a9a92;
-  --faint: #5a6b63;
-  --label: #6f8278;
-  --border: #1f2a26;
-  --border-strong: #2c3b35;
+  --background: #0b0c0d;
+  --surface: #131517;
+  --surface-muted: #181b1d;
+  --surface-raised: #1e2225;
+  --viewport: #050607;
+  --foreground: #e8ebec;
+  --muted: #a2a9ad;
+  --faint: #5f676b;
+  --label: #828b8f;
+  --border: #23282b;
+  --border-strong: #333a3e;
 
-  /* Phosphor-green tactical accent (primary HUD + Arm button) */
-  --accent: #2fe08a;
-  --accent-hover: #43e898;
-  --accent-active: #25c476;
-  --accent-foreground: #03130b;
-  --accent-soft: #0f231a;
+  /* Restrained glass — translucent panel fills over the textured shell. */
+  --glass: rgba(17, 19, 21, 0.72);
+  --glass-strong: rgba(10, 12, 13, 0.8);
 
-  /* Instrument signal colours */
-  --hud: #38e8a0;
-  --hud-dim: #1f7a55;
-  --ready: #f0a324;
-  --caution: #f0a324;
-  --danger: #ff4d4d;
-  --good: #2fe08a;
-  --info: #3da5ff;
+  /* Restrained desaturated steel accent (primary HUD + Arm button). */
+  --accent: #7fb8b0;
+  --accent-hover: #93c7bf;
+  --accent-active: #69a59c;
+  --accent-foreground: #07110f;
+  --accent-soft: #161e1d;
 
+  /* Instrument signal colours — readouts read as neutral light steel. */
+  --hud: #c6d3d2;
+  --hud-dim: #5d6f6b;
+  --ready: #e0a23f;
+  --caution: #e0a23f;
+  --danger: #ec5b56;
+  --good: #7fb8b0;
+  --info: #7d9bac;
+
+  /* Radii (closed set) */
   --radius: 8px;
+  --r-field: 7px;
+  --r-card: 9px;
+  --r-panel: 11px;
+
+  /* Elevation — hairline + thin shadow + faint inner top highlight. */
+  --e1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --e2: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --blur-sm: blur(8px);
+  --blur-md: blur(14px) saturate(1.08);
+
+  /* Console rail + command-bar metrics. */
+  --rail: 296px;
+  --cmdbar: 44px;
+
+  /* Motion — tuned easings + durations (never transition-all). */
+  --t-fast: 120ms;
+  --t-base: 180ms;
+  --t-slow: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
@@ -62,6 +89,8 @@
   --color-danger: var(--danger);
   --color-good: var(--good);
   --color-info: var(--info);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --radius-card: var(--radius);
@@ -83,6 +112,49 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Tactical surface texture — a single faint hairline grid behind the shell,
+ * never over content. ~3% opacity so panels read as floating above a console
+ * deck, not a decorated background.
+ */
+.deck-grid {
+  background-image:
+    linear-gradient(to right, rgba(140, 150, 152, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(140, 150, 152, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/*
+ * Glass panel primitive — restrained backdrop blur, crisp hairline border,
+ * faint inner top highlight + one thin drop shadow. NO coloured glow.
+ */
+.panel {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--r-panel);
+  box-shadow: var(--e1), var(--inset-top);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+}
+.panel-flush {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
+}
+
+/* Command-bar status chip — state dot + mono label. */
+.cmd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: var(--r-field);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  white-space: nowrap;
+}
+
 /* Monospace, letter-spaced uppercase instrument label used throughout. */
 .label-mono {
   font-family: var(--font-mono), ui-monospace, monospace;
@@ -97,7 +169,7 @@ body {
 .hud-readout {
   font-family: var(--font-mono), ui-monospace, monospace;
   color: var(--hud);
-  text-shadow: 0 0 8px rgba(47, 224, 138, 0.35);
+  text-shadow: 0 0 8px rgba(198, 211, 210, 0.25);
   font-variant-numeric: tabular-nums;
 }
 
@@ -162,7 +234,7 @@ body {
   background: var(--accent);
   border-color: var(--accent-active);
   color: var(--accent-foreground);
-  box-shadow: 0 0 12px rgba(47, 224, 138, 0.4);
+  box-shadow: 0 0 12px rgba(127, 184, 176, 0.32);
 }
 .keycap:not([data-disabled="true"]):hover {
   border-color: var(--border-strong);
@@ -265,7 +337,7 @@ body {
   border-radius: 999px;
   background: var(--accent);
   border: 1px solid var(--accent-active);
-  box-shadow: 0 0 8px rgba(47, 224, 138, 0.5);
+  box-shadow: 0 0 8px rgba(127, 184, 176, 0.4);
   transition: border-color 0.12s ease;
 }
 .reactor-range::-webkit-slider-thumb:hover {
@@ -277,5 +349,40 @@ body {
   border-radius: 999px;
   background: var(--accent);
   border: 1px solid var(--accent-active);
-  box-shadow: 0 0 8px rgba(47, 224, 138, 0.5);
+  box-shadow: 0 0 8px rgba(127, 184, 176, 0.4);
+}
+
+/* Slim phosphor bar used by the docked telemetry readouts. */
+.meter {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--hud);
+  transition: width var(--t-base) var(--ease-out);
+}
+
+/*
+ * Accessibility: respect the OS reduced-motion preference. Kill the ambient,
+ * decorative loops (scan sweep, pulse, spin-as-decoration) and collapse
+ * transitions to near-instant while keeping state legible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .scan-sweep,
+  .pulse-dot,
+  .alert-flash {
+    animation: none !important;
+  }
 }

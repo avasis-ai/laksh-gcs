@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the Laksh main window. Reactor commands (mint_reactor_token, reactor_pricing, reactor_health) are app-defined and need no extra permission.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

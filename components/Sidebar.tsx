@@ -11,13 +11,7 @@ import {
   type PromptPreset,
 } from "@/lib/laksh/scene";
 import { useStudio } from "./StudioProvider";
-import {
-  ArrowRight,
-  LakshMark,
-  Plus,
-  Spinner,
-  Target,
-} from "./icons";
+import { Plus, Spinner, Target } from "./icons";
 
 function SectionLabel({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
@@ -39,18 +33,12 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       style={{ background: checked ? "var(--accent)" : "var(--border-strong)" }}
     >
       <span
-        className="absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-all"
+        className="absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-[left] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{ left: checked ? "16px" : "2px" }}
       />
     </button>
   );
 }
-
-const BUILD_LINKS = [
-  { label: "Reactor Docs", href: "https://docs.reactor.inc" },
-  { label: "LingBot SDK", href: "https://github.com/reactor-team/js-sdk" },
-  { label: "Get API Key", href: "https://reactor.inc/dashboard" },
-];
 
 function ChipRow({
   presets,
@@ -93,6 +81,8 @@ export function Sidebar() {
     setWeatherSlot,
     enhance,
     setEnhance,
+    worldLocked,
+    setWorldLocked,
     generate,
     busy,
     busyLabel,
@@ -101,46 +91,28 @@ export function Sidebar() {
     injectCustomTarget,
     clearMarkers,
     markers,
-    log,
   } = useStudio();
 
   const fileRef = useRef<HTMLInputElement>(null);
   const running = Boolean(state?.started);
+  const activeSeed = seeds.find((s) => s.id === selected?.id);
   const [targetLabel, setTargetLabel] = useState("");
   const [targetText, setTargetText] = useState("");
 
   return (
-    <aside className="flex h-full w-[320px] shrink-0 flex-col border-r border-border bg-surface">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--accent-active)] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
-          <LakshMark />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[14px] font-semibold leading-tight tracking-wide">
-            LAKSH
-            <span className="hud-readout text-[8px] opacity-70">GCS</span>
-          </div>
-          <div className="truncate text-[10px] leading-tight text-muted">
-            CelesticLabs · UAV World Model
-          </div>
-        </div>
+    <aside className="flex h-full w-[var(--rail)] shrink-0 flex-col border-r border-border bg-surface">
+      {/* Rail header — identity lives in the command bar; this names the rail. */}
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+        <span className="label-mono">Mission Tasking</span>
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: running ? "var(--good)" : "var(--faint)" }}
+        />
       </div>
 
       <div className="scroll-thin flex-1 overflow-y-auto px-4 py-4">
-        {/* Start building */}
-        <SectionLabel>Start Building</SectionLabel>
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {BUILD_LINKS.map((l) => (
-            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="pill">
-              {l.label}
-              <ArrowRight className="text-muted" />
-            </a>
-          ))}
-        </div>
-
         {/* Mission seed rail */}
-        <div className="mt-6">
+        <div>
           <SectionLabel>Mission Seed</SectionLabel>
           <div className="mt-2.5 grid grid-cols-5 gap-2">
             <button
@@ -170,7 +142,7 @@ export function Sidebar() {
                   type="button"
                   onClick={() => selectUpload(u)}
                   title={u.label}
-                  className="relative aspect-square overflow-hidden rounded-[7px] border transition-all"
+                  className="relative aspect-square overflow-hidden rounded-[7px] border transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{ borderColor: active ? "var(--accent-active)" : "var(--border)", boxShadow: active ? "0 0 0 2px var(--accent-soft)" : "none" }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -186,7 +158,7 @@ export function Sidebar() {
                   type="button"
                   onClick={() => selectSeed(s)}
                   title={s.label}
-                  className="relative aspect-square overflow-hidden rounded-[7px] border transition-all"
+                  className="relative aspect-square overflow-hidden rounded-[7px] border transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{ borderColor: active ? "var(--accent-active)" : "var(--border)", boxShadow: active ? "0 0 0 2px var(--accent-soft)" : "none" }}
                 >
                   <Image src={s.src} alt={s.label} fill sizes="56px" className="object-cover" />
@@ -195,10 +167,18 @@ export function Sidebar() {
             })}
           </div>
           {selected && (
-            <p className="mt-2 text-[11px] text-muted">
-              <span className="label-mono">AO</span>{" "}
-              <span className="text-foreground">{selected.label}</span>
-            </p>
+            <div className="mt-2">
+              <p className="text-[11px] text-muted">
+                <span className="label-mono">AO</span>{" "}
+                <span className="text-foreground">{selected.label}</span>
+              </p>
+              {activeSeed?.brief && (
+                <p className="mt-1 text-[11px] leading-snug text-muted">
+                  <span className="label-mono">Brief</span>{" "}
+                  <span className="text-foreground/80">{activeSeed.brief}</span>
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -260,6 +240,15 @@ export function Sidebar() {
               Connects GPU on demand · billing starts when armed
             </p>
           )}
+          {running && (
+            <div className="mt-3 flex items-center justify-between rounded-[7px] border border-border bg-surface-muted px-2.5 py-2">
+              <div className="flex flex-col">
+                <span className="label-mono">Lock World</span>
+                <span className="text-[10px] text-faint">Freeze prompt during free-flight</span>
+              </div>
+              <Toggle checked={worldLocked} onChange={setWorldLocked} />
+            </div>
+          )}
         </div>
 
         {/* Target injection */}
@@ -309,31 +298,6 @@ export function Sidebar() {
               Inject Target
             </button>
           </div>
-        </div>
-
-        {/* Mission log */}
-        <div className="mt-6 mb-2">
-          <SectionLabel>Mission Log</SectionLabel>
-          {log.length === 0 ? (
-            <p className="mt-2.5 text-[11px] leading-relaxed text-faint">
-              Mission events will appear here.
-            </p>
-          ) : (
-            <ul className="mt-2.5 space-y-1">
-              {log.map((e) => (
-                <li key={e.id} className="flex items-start gap-2 text-[11px] leading-snug">
-                  <span
-                    className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{
-                      background:
-                        e.level === "alert" ? "var(--danger)" : e.level === "warn" ? "var(--caution)" : "var(--hud-dim)",
-                    }}
-                  />
-                  <span className="text-muted">{e.text}</span>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       </div>
     </aside>

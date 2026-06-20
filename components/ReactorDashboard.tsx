@@ -3,7 +3,9 @@
 import { LingbotProvider } from "@reactor-models/lingbot";
 
 import { fetchJwt } from "@/lib/reactor/client";
+import { CommandBar } from "./CommandBar";
 import { GcsViewport } from "./GcsViewport";
+import { RightRail } from "./RightRail";
 import { Sidebar } from "./Sidebar";
 import { StudioProvider } from "./StudioProvider";
 
@@ -22,11 +24,15 @@ export function ReactorDashboard() {
   return (
     <LingbotProvider getJwt={fetchJwt} connectOptions={{ autoConnect: false, maxAttempts: 8 }}>
       <StudioProvider>
-        <div className="flex h-full w-full">
-          <Sidebar />
-          <main className="flex min-w-0 flex-1 flex-col p-3">
-            <GcsViewport />
-          </main>
+        <div className="deck-grid flex h-full w-full flex-col">
+          <CommandBar />
+          <div className="flex min-h-0 flex-1">
+            <Sidebar />
+            <main className="flex min-w-0 flex-1 flex-col p-2.5">
+              <GcsViewport />
+            </main>
+            <RightRail />
+          </div>
         </div>
       </StudioProvider>
     </LingbotProvider>

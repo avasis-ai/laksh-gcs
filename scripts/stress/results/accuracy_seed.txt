@@ -1,0 +1,11 @@
+  session A seed=42: frame=grabbed ready~5.3s
+  session B seed=42: frame=grabbed ready~5.7s
+  session C seed=777: frame=grabbed ready~5.2s
+
+===== PHASE 3: seed reproducibility =====
+  MAD(A,B) same seed=42 : 1.49
+  MAD(A,C) seed 42 vs 777: 4.15
+  MAD(B,C) seed 42 vs 777: 4.37
+  >> same-seed vs diff-seed ratio: 2.80x (REPRODUCIBLE)
+  cost: READY ~16.3s ≈ 537 credits ≈ $0.0537
+COST_CREDITS=537

@@ -22,6 +22,7 @@ import {
 import {
   CommandCoalescer,
   compileIntent,
+  DEFAULT_SENSITIVITY,
   DEFAULT_SHAPE,
   ZERO_INTENT,
   type ControlProfile,
@@ -96,6 +97,9 @@ interface StudioContextValue {
   enhance: boolean;
   setEnhance: (v: boolean) => void;
   composedPrompt: string;
+  /** Freeze live prompt re-emission during free-flight (world consistency). */
+  worldLocked: boolean;
+  setWorldLocked: (v: boolean) => void;
 
   // references / seeds
   seeds: LakshSeed[];
@@ -159,12 +163,35 @@ function clamp(v: number, lo: number, hi: number) {
 
 const FIXED_SEED = 42; // reproducible runs (playbook §4.4 stability)
 
+/**
+ * Map raw Reactor connect/session errors to operator-friendly copy. The live
+ * platform returns HTTP 429 `quota_exceeded` once all 5 concurrent sessions are
+ * in use (confirmed via scripts/stress/concurrency.py) and 402 when out of
+ * credits — both should read as actionable status, not a stack-trace string.
+ */
+function friendlyConnectError(raw: string): string {
+  if (/\b429\b/.test(raw) || /quota_exceeded|concurrent_sessions/i.test(raw)) {
+    return "All GPU sessions are in use (limit 5). Wait a moment and re-arm the feed.";
+  }
+  if (/\b402\b/.test(raw) || /out of credits|insufficient/i.test(raw)) {
+    return "GPU credits exhausted — top up the Reactor account to continue.";
+  }
+  if (/\b401\b/.test(raw) || /AUTHENTICATION_FAILED|token/i.test(raw)) {
+    return "Session token rejected — check the Reactor API key, then re-arm.";
+  }
+  return raw;
+}
+
 export function StudioProvider({ children }: { children: React.ReactNode }) {
   const lb = useLingbot();
 
   const firstSeed = LAKSH_SEEDS[0];
-  const [scene, setScene] = useState<SceneGraph>(() => newSceneGraph(firstSeed.promptSeed));
+  const [scene, setScene] = useState<SceneGraph>(() => {
+    const g = newSceneGraph(firstSeed.promptSeed);
+    return firstSeed.pov ? { ...g, pov: firstSeed.pov } : g;
+  });
   const [enhance, setEnhance] = useState(true);
+  const [worldLocked, setWorldLockedState] = useState(false);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [selected, setSelected] = useState<RefSelection | null>({
     kind: "preset",
@@ -177,7 +204,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState("");
   const [muted, setMuted] = useState(true);
-  const [sensitivity, setSensitivityState] = useState(18);
+  const [sensitivity, setSensitivityState] = useState(DEFAULT_SENSITIVITY);
   const [profile, setProfile] = useState<ControlProfile>("stabilised");
   const [markers, setMarkers] = useState<HudMarker[]>([]);
   const [log, setLog] = useState<MissionLogEntry[]>([]);
@@ -195,6 +222,11 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   const sensitivityRef = useRef(sensitivity);
   const sceneRef = useRef(scene);
   const enhanceRef = useRef(enhance);
+  // World-consistency refs: dedup identical prompts, debounce rapid slot edits,
+  // and freeze prompt re-emission when the world is locked.
+  const lastSentPromptRef = useRef("");
+  const promptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const worldLockedRef = useRef(worldLocked);
 
   useEffect(() => { statusRef.current = lb.status; }, [lb.status]);
   useEffect(() => { lbRef.current = lb; }, [lb]);
@@ -202,6 +234,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
   useEffect(() => { sceneRef.current = scene; }, [scene]);
   useEffect(() => { enhanceRef.current = enhance; }, [enhance]);
+  useEffect(() => { worldLockedRef.current = worldLocked; }, [worldLocked]);
 
   const pushLog = useCallback((text: string, level: MissionLogEntry["level"] = "info") => {
     setLog((prev) =>
@@ -440,28 +473,65 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
 
   const composedPrompt = useMemo(() => composePrompt(scene, enhance), [scene, enhance]);
 
-  // Re-emit the merged prompt mid-stream when a slot changes (one slot at a time).
-  const emitPromptIfLive = useCallback(async (g: SceneGraph) => {
-    if (stateRef.current?.started) {
-      try {
-        await lb.setPrompt({ prompt: composePrompt(g, enhanceRef.current) });
-      } catch {
-        // surfaced via command_error
-      }
-    }
+  // Re-emit the merged prompt mid-stream when a slot MEANINGFULLY changes.
+  //
+  // World-consistency discipline (docs/research/world-consistency.md):
+  //  - dedup: never re-send a prompt identical to the last one on the wire
+  //    (toggling a chip back, re-renders, double-paths all collapse to no-op);
+  //  - debounce: coalesce rapid edits (e.g. typing in the base textarea fires
+  //    on every keystroke) into a single setPrompt so the world isn't churned
+  //    char-by-char at chunk boundaries;
+  //  - lock: while the world is locked, freeze prompt re-emission entirely so
+  //    free-flight never triggers a prompt-driven morph.
+  // Each of these directly reduces the prompt churn that makes LingBot morph.
+  const PROMPT_DEBOUNCE_MS = 350;
+
+  const flushPrompt = useCallback((g: SceneGraph) => {
+    const next = composePrompt(g, enhanceRef.current);
+    if (next === lastSentPromptRef.current) return;
+    lastSentPromptRef.current = next;
+    lb.setPrompt({ prompt: next }).catch(() => {
+      // surfaced via command_error
+    });
   }, [lb]);
+
+  const emitPromptIfLive = useCallback((g: SceneGraph, immediate = false) => {
+    if (!stateRef.current?.started) return;
+    if (worldLockedRef.current) return; // world frozen — no prompt churn
+    if (composePrompt(g, enhanceRef.current) === lastSentPromptRef.current) return;
+    if (promptDebounceRef.current) {
+      clearTimeout(promptDebounceRef.current);
+      promptDebounceRef.current = null;
+    }
+    if (immediate) {
+      flushPrompt(g);
+    } else {
+      promptDebounceRef.current = setTimeout(() => {
+        promptDebounceRef.current = null;
+        flushPrompt(sceneRef.current);
+      }, PROMPT_DEBOUNCE_MS);
+    }
+  }, [flushPrompt]);
 
   // Push prompt changes live whenever the scene graph changes while running.
   useEffect(() => {
-    if (stateRef.current?.started) {
-      void emitPromptIfLive(scene);
-    }
+    emitPromptIfLive(scene);
   }, [scene, emitPromptIfLive]);
+
+  // Lock toggle: when UNLOCKING mid-flight, flush any pending scene edits so the
+  // world catches up to the composed prompt; locking just freezes re-emission.
+  const setWorldLocked = useCallback((v: boolean) => {
+    setWorldLockedState(v);
+    worldLockedRef.current = v;
+    if (!v) emitPromptIfLive(sceneRef.current, true);
+    if (v) pushLog("World locked — prompt frozen for stable free-flight.", "info");
+    else pushLog("World unlocked — scene-graph edits live again.", "info");
+  }, [emitPromptIfLive, pushLog]);
 
   // ---- references ----
   const selectSeed = useCallback((seed: LakshSeed) => {
     setSelected({ kind: "preset", id: seed.id, label: seed.label, src: seed.src });
-    setScene((g) => ({ ...g, base: seed.promptSeed }));
+    setScene((g) => ({ ...g, base: seed.promptSeed, pov: seed.pov ?? g.pov }));
   }, []);
 
   const selectUpload = useCallback((u: UploadItem) => {
@@ -526,6 +596,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     try {
       if (stateRef.current?.started) {
         setBusyLabel("Updating theatre…");
+        lastSentPromptRef.current = finalPrompt;
         await lb.setPrompt({ prompt: finalPrompt });
         pushLog("Scene-graph re-tasked live.", "info");
       } else {
@@ -551,7 +622,10 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         }
 
         setBusyLabel("Loading scene-graph…");
+        // Fixed seed BEFORE prompt/start anchors a reproducible world (read once
+        // at start); the prompt anchor + fixed seed are the consistency baseline.
         await lb.setSeed({ seed: FIXED_SEED }).catch(() => {});
+        lastSentPromptRef.current = finalPrompt;
         await lb.setPrompt({ prompt: finalPrompt });
         await lb.setRotationSpeedDeg({ rotation_speed_deg: sensitivityRef.current }).catch(() => {});
 
@@ -563,7 +637,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         pushLog(`Feed live — theatre: ${sel.label}.`, "info");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Generation failed.";
+      const raw = err instanceof Error ? err.message : "Generation failed.";
+      const message = friendlyConnectError(raw);
       setError(message);
       pushLog(message, "alert");
     } finally {
@@ -584,6 +659,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       setState(null);
       stateRef.current = null;
       enabledRef.current = false;
+      lastSentPromptRef.current = "";
       setSessionSeconds(0);
       setLinkArmed(false);
     }
@@ -594,6 +670,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       coalescerRef.current?.reset();
       flightRef.current.reset(0);
       setMarkers([]);
+      lastSentPromptRef.current = "";
       await lb.reset();
       pushLog("World reset — re-acquiring.", "warn");
     } catch (err) {
@@ -637,7 +714,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     });
     placeMarker(preset.kind, preset.label);
     pushLog(`Injected: ${preset.label}.`, "warn");
-    if (nextScene) await emitPromptIfLive(nextScene);
+    if (nextScene) emitPromptIfLive(nextScene, true);
   }, [placeMarker, pushLog, emitPromptIfLive]);
 
   const injectCustomTarget = useCallback(async (label: string, promptText: string) => {
@@ -650,7 +727,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     });
     placeMarker("structure", label || "Target");
     pushLog(`Injected target: ${label || text.slice(0, 24)}.`, "warn");
-    if (nextScene) await emitPromptIfLive(nextScene);
+    if (nextScene) emitPromptIfLive(nextScene, true);
   }, [placeMarker, pushLog, emitPromptIfLive]);
 
   const dropWaypoint = useCallback(() => {
@@ -683,6 +760,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
       enhance,
       setEnhance,
       composedPrompt,
+      worldLocked,
+      setWorldLocked,
       seeds: LAKSH_SEEDS,
       uploads,
       selected,
@@ -715,6 +794,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     [
       lb.status, busy, busyLabel, state, error, clearError, sessionSeconds, linkArmed,
       scene, setPovSlot, setTimeSlot, setWeatherSlot, setBaseSlot, enhance,
+      worldLocked, setWorldLocked,
       composedPrompt, uploads, selected, selectSeed, selectUpload, addUpload,
       generate, stop, reset, togglePause, profile, sensitivity, setSensitivity,
       setVirtualMove, setVirtualLook, subscribeFlight, getFlight, markers,

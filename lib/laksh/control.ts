@@ -96,9 +96,18 @@ export interface CompileOptions {
   profile: ControlProfile;
 }
 
+// Rotation-speed ceiling (deg/latent-frame). Lowered from 18 → 11 for world
+// CONSISTENCY: fast look/turn rate is the dominant accelerant of LingBot drift
+// (each large yaw/pitch step forces the model to hallucinate fresh geometry off
+// the edge of frame). A gentler default keeps look smooth and the world stable
+// while still leaving headroom up to 30 via the sensitivity slider for operators
+// who want snappier panning. (Reactor default is 5.0; LingBot's own cam variant
+// is tuned for "smooth camera movements" per lingbot-world.com.)
+export const DEFAULT_SENSITIVITY = 11;
+
 export const DEFAULT_COMPILE: CompileOptions = {
   shape: DEFAULT_SHAPE,
-  sensitivity: 18,
+  sensitivity: DEFAULT_SENSITIVITY,
   profile: "stabilised",
 };
 
@@ -162,13 +171,32 @@ export interface CommandSinks {
   setRotationSpeedDeg: (deg: number) => void;
 }
 
+function nowMs(): number {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
 /**
  * Command coalescer (playbook §4.2.1–§4.2.2).
  *
- * Buffers the latest desired primitive state and flushes the *diff* at most once
- * per chunk boundary (last-write-wins). Rapid taps between chunks collapse to the
- * final intent. Releases to `idle` flush immediately for safety/responsiveness,
- * so a control never "sticks".
+ * Buffers the latest desired primitive state and flushes the *diff* (last-write-
+ * wins). Rapid taps collapse to the final intent.
+ *
+ * Flush triggers:
+ *  1. **Release** (any axis → `idle`): immediate, never throttled — a control
+ *     must never "stick".
+ *  2. **Engage / token change** (movement / lookH / lookV transition): immediate
+ *     but rate-limited to once per {@link minFlushIntervalMs}. Measured
+ *     (scripts/stress/main_session.py) a command sent only on the next
+ *     `chunk_complete` landed Δ2 chunks (~1.4 s) later; sending the engage
+ *     promptly lets the model apply it at the *next* boundary instead of the one
+ *     after (~1 chunk / ~0.6 s sooner) while the rate limit still prevents wire
+ *     spam from oscillating input.
+ *  3. **Chunk boundary backstop**: {@link flush} is also called on every
+ *     `chunk_complete`, which catches any change throttled out of (2) and is the
+ *     natural cadence for rotation-speed updates.
+ *
+ * Rotation-speed-only changes never trigger an immediate flush (they ride the
+ * chunk backstop) — otherwise a continuously varying look stick would spam.
  */
 export class CommandCoalescer {
   private desired: Primitives = { ...IDLE_PRIMITIVES };
@@ -176,12 +204,18 @@ export class CommandCoalescer {
   private readonly sinks: CommandSinks;
   /** Minimum rotation-speed delta worth re-sending. */
   private readonly rotEpsilon = 0.4;
+  /** Rate limit for immediate engage flushes (ms). ~1/3 of a chunk (~600ms). */
+  private readonly minFlushIntervalMs = 180;
+  private lastFlushAt = 0;
 
   constructor(sinks: CommandSinks) {
     this.sinks = sinks;
   }
 
-  /** Update the buffered desired state. Idle-releases flush immediately. */
+  /**
+   * Update the buffered desired state. Releases flush immediately; engage/token
+   * transitions flush promptly but rate-limited (chunk boundary is the backstop).
+   */
   setDesired(next: Primitives): void {
     const prev = this.desired;
     this.desired = next;
@@ -189,7 +223,17 @@ export class CommandCoalescer {
       (prev.movement !== "idle" && next.movement === "idle") ||
       (prev.lookH !== "idle" && next.lookH === "idle") ||
       (prev.lookV !== "idle" && next.lookV === "idle");
-    if (released) this.flush();
+    if (released) {
+      this.flush();
+      return;
+    }
+    const tokenChanged =
+      prev.movement !== next.movement ||
+      prev.lookH !== next.lookH ||
+      prev.lookV !== next.lookV;
+    if (tokenChanged && nowMs() - this.lastFlushAt >= this.minFlushIntervalMs) {
+      this.flush();
+    }
   }
 
   /** Get the currently buffered desired primitives. */
@@ -202,6 +246,7 @@ export class CommandCoalescer {
    * (the control cadence) and on idle-release. Returns the set of fields sent.
    */
   flush(): Partial<Primitives> {
+    this.lastFlushAt = nowMs();
     const sent: Partial<Primitives> = {};
     const last = this.lastSent;
     const d = this.desired;
@@ -232,5 +277,6 @@ export class CommandCoalescer {
   reset(): void {
     this.desired = { ...IDLE_PRIMITIVES };
     this.lastSent = null;
+    this.lastFlushAt = 0;
   }
 }

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scratch stress-test harness — not part of the shipped app bundle.
+    "scripts/stress/**",
+    // Tauri (Rust crate + its build artifacts) — not JS app source.
+    "src-tauri/**",
   ]),
 ]);
 

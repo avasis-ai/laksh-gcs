@@ -1,0 +1,64 @@
+Exception in callback Transaction.__retry()
+handle: <TimerHandle when=176201.998005958 Transaction.__retry()>
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 1280, in sendto
+    self._sock.sendto(data, addr)
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'sendto'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/laksh-venv/lib/python3.14/site-packages/aioice/stun.py", line 333, in __retry
+    self.__protocol.send_stun(self.__request, self.__addr)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/laksh-venv/lib/python3.14/site-packages/aioice/ice.py", line 327, in send_stun
+    self.transport.sendto(bytes(message), addr)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 1290, in sendto
+    self._fatal_error(
+    ~~~~~~~~~~~~~~~~~^
+        exc, 'Fatal write error on datagram transport')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 884, in _fatal_error
+    self._loop.call_exception_handler({
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'call_exception_handler'
+Exception in callback Transaction.__retry()
+handle: <TimerHandle when=176202.018873208 Transaction.__retry()>
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 1280, in sendto
+    self._sock.sendto(data, addr)
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'sendto'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/laksh-venv/lib/python3.14/site-packages/aioice/stun.py", line 333, in __retry
+    self.__protocol.send_stun(self.__request, self.__addr)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/laksh-venv/lib/python3.14/site-packages/aioice/ice.py", line 327, in send_stun
+    self.transport.sendto(bytes(message), addr)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 1290, in sendto
+    self._fatal_error(
+    ~~~~~~~~~~~~~~~~~^
+        exc, 'Fatal write error on datagram transport')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/selector_events.py", line 884, in _fatal_error
+    self._loop.call_exception_handler({
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'call_exception_handler'
+  cycle 1/1: →waiting=1663.3ms →ready=Nonems wall=4813.8ms ready_held=0.5s
+
+===== PHASE 2: connection distribution (n=1) =====
+  connect→waiting:  p50=1663.3 p95=1663.3 mean=1663.3 ms
+  cost: READY ~0.5s ≈ 17 credits ≈ $0.0017
+COST_CREDITS=17

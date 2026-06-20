@@ -80,7 +80,7 @@ function Joystick({ label, hint, onChange, disabled }: JoystickProps) {
             borderColor: "var(--accent-active)",
             background: "var(--accent-soft)",
             transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))`,
-            boxShadow: "0 0 12px rgba(47,224,138,0.35)",
+            boxShadow: "0 0 12px rgba(127,184,176,0.3)",
           }}
         />
       </div>

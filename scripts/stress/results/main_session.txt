@@ -1,0 +1,25 @@
+
+===== PHASE 1: main session =====
+-- connection --
+    connecting: +     0.0 ms
+       waiting: +  1626.8 ms
+         ready: +  5927.7 ms
+   connect() returned (→waiting): 4073.4 ms
+   connect()→READY wall (GPU assigned): 5931.3 ms
+-- seed/upload --
+   upload_file: 2680.1 ms
+   image_accepted after set_image: 340.0 ms
+-- TTFF / frames --
+   start()→first frame: 1461.3 ms
+   first frame shape=(960, 1664, 3) hash=64d1b43c44bc2c36
+   total frames=705 steady fps~38.32 (target 16)  interframe p50=25.6ms p95=44.2ms jitter~18.6ms
+-- chunk cadence --
+   start()→first chunk_complete: 1059.8 ms
+   chunks=31 inter-chunk p50=597.1ms p95=853.8ms mean=625.0ms
+   frames_emitted/chunk: mean=23.8 (set [17, 24])
+-- command responsiveness (set_movement forward) --
+   sent at chunk 5, landed at chunk 7 (Δ2 chunks) action='w'
+   send→reflected latency: 1410.0 ms
+-- cost --
+   READY ~23.3s  ≈ 768 credits ≈ $0.0768
+COST_CREDITS=768

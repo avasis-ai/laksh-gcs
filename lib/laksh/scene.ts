@@ -28,6 +28,7 @@ export interface PromptPreset {
 }
 
 export const POV_PRESETS: PromptPreset[] = [
+  { id: "pov-chase", label: "Chase Cam (3P)", slot: "pov", value: "third-person chase camera following the drone from behind and slightly above, the UAV airframe visible in frame banking through the scene" },
   { id: "pov-high", label: "High Loiter", slot: "pov", value: "high-altitude aerial drone view looking down, wide reconnaissance framing" },
   { id: "pov-mid", label: "Patrol Alt", slot: "pov", value: "mid-altitude aerial drone FPV view, slight downward tilt, surveillance framing" },
   { id: "pov-low", label: "Low & Fast", slot: "pov", value: "low-altitude fast FPV drone view skimming the terrain, slight barrel distortion" },
@@ -61,15 +62,34 @@ export interface EventPreset {
 }
 
 export const EVENT_PRESETS: EventPreset[] = [
-  { id: "ev-convoy", label: "Convoy", kind: "vehicle", value: "a convoy of three military vehicles moving along the road below" },
-  { id: "ev-contact", label: "Contact", kind: "personnel", value: "a small group of figures moving on foot across open ground" },
-  { id: "ev-smoke", label: "Smoke", kind: "hazard", value: "thick black smoke rising from a compound" },
-  { id: "ev-boat", label: "Boat Wake", kind: "naval", value: "a fast boat cutting a white wake across the water" },
-  { id: "ev-compound", label: "Compound", kind: "structure", value: "a walled compound with several outbuildings below" },
-  { id: "ev-aircraft", label: "Aircraft", kind: "vehicle", value: "another aircraft crossing in the distance" },
+  { id: "ev-compound", label: "Enemy Compound", kind: "structure", value: "a fortified enemy compound with a perimeter wall and several outbuildings on the ground below" },
+  { id: "ev-sam", label: "SAM Site", kind: "structure", value: "a camouflaged surface-to-air missile site with a radar dish and launch vehicles in a cleared emplacement" },
+  { id: "ev-technical", label: "Technical", kind: "vehicle", value: "an armed technical pickup truck with a mounted heavy machine gun moving along the track below" },
+  { id: "ev-section", label: "Foot Section", kind: "personnel", value: "a section of dismounted soldiers moving in file across open ground" },
+  { id: "ev-convoy", label: "Supply Convoy", kind: "vehicle", value: "a supply convoy of military trucks raising dust along the road below" },
+  { id: "ev-boat", label: "Patrol Boat", kind: "naval", value: "a fast patrol boat cutting a white wake across the water" },
+  { id: "ev-artillery", label: "Artillery", kind: "structure", value: "a dug-in artillery position with towed howitzers and earth revetments" },
+  { id: "ev-ied", label: "IED / Crater", kind: "hazard", value: "a fresh blast crater and disturbed earth marking a roadside IED on the route below" },
 ];
 
-/** Quality cues appended when ENHANCE is on. */
+/**
+ * Persistence / anti-morph anchor — ALWAYS appended (playbook §4.4 stability tip
+ * + the seed-repro finding in scripts/stress/accuracy_seed.py and the official
+ * LingBot guidance on long-term spatial memory at https://lingbot-world.com).
+ *
+ * LingBot keeps coherent spatial memory but a hot-swapped prompt is the main
+ * lever that can fight it: re-emitting churned wording at chunk boundaries makes
+ * geometry/architecture warp. Pairing a FIXED seed with a stable, repeated
+ * persistence clause holds the world together. Phrased positively (LingBot does
+ * not reliably honour negatives) and kept identical run-to-run so the composed
+ * prompt only changes when the operator MEANINGFULLY changes a slot.
+ */
+const STABILITY_CUES =
+  "a single coherent persistent world, the same location throughout, " +
+  "stable consistent geometry and architecture, temporally stable, locked layout, no morphing";
+
+/** Higher-fidelity look cues appended when ENHANCE is on (kept separate from the
+ * always-on stability anchor so quality never fights consistency). */
 const QUALITY_CUES =
   "photoreal, cinematic, high dynamic range, sharp sensor optics, volumetric atmosphere";
 
@@ -85,18 +105,32 @@ export function newSceneGraph(base: string): SceneGraph {
 
 /**
  * Compose the layered scene-graph into a single LingBot prompt string.
- * Order: base → POV/altitude → time-of-day → weather → dynamic events → quality.
+ * Order: base → POV/altitude → time-of-day → weather → dynamic events →
+ * quality(enhance) → persistence anchor.
+ *
+ * The persistence anchor (and quality cues) form a fixed TAIL that is budgeted
+ * first so that, if the 1000-char LingBot cap is hit, only the variable body
+ * (events first) is trimmed — the anti-morph anchor is never truncated away.
  */
 export function composePrompt(g: SceneGraph, enhance: boolean): string {
-  const parts: string[] = [];
-  if (g.base.trim()) parts.push(g.base.trim());
-  if (g.pov.trim()) parts.push(g.pov.trim());
-  if (g.timeOfDay.trim()) parts.push(g.timeOfDay.trim());
-  if (g.weather.trim()) parts.push(g.weather.trim());
-  for (const ev of g.events) if (ev.trim()) parts.push(ev.trim());
-  if (enhance) parts.push(QUALITY_CUES);
-  let prompt = parts.join(". ");
-  // LingBot caps prompts at 1000 chars.
-  if (prompt.length > 1000) prompt = prompt.slice(0, 997) + "...";
-  return prompt;
+  const tail: string[] = [];
+  if (enhance) tail.push(QUALITY_CUES);
+  tail.push(STABILITY_CUES);
+  const tailStr = tail.join(". ");
+
+  const body: string[] = [];
+  if (g.base.trim()) body.push(g.base.trim());
+  if (g.pov.trim()) body.push(g.pov.trim());
+  if (g.timeOfDay.trim()) body.push(g.timeOfDay.trim());
+  if (g.weather.trim()) body.push(g.weather.trim());
+  for (const ev of g.events) if (ev.trim()) body.push(ev.trim());
+  let bodyStr = body.join(". ");
+
+  const sep = bodyStr ? ". " : "";
+  // LingBot caps prompts at 1000 chars — protect the tail anchor.
+  const maxBody = 1000 - (tailStr.length + sep.length);
+  if (bodyStr.length > maxBody) {
+    bodyStr = maxBody > 3 ? bodyStr.slice(0, maxBody - 3) + "..." : "";
+  }
+  return bodyStr ? `${bodyStr}${sep}${tailStr}` : tailStr;
 }

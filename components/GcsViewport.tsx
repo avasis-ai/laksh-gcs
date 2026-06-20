@@ -194,7 +194,7 @@ export function GcsViewport() {
   const gamepad = useGamepadPresence();
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden rounded-[10px] border border-border bg-viewport">
+    <div className="flex h-full flex-1 flex-col overflow-hidden rounded-[var(--r-panel)] border border-border bg-viewport shadow-[var(--e2)]">
       {/* Full-bleed feed + overlays */}
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
         {showVideo ? (
@@ -230,24 +230,34 @@ export function GcsViewport() {
           </div>
         )}
 
-        {/* HUD overlays — only meaningful while live */}
+        {/* Spatial HUD — stays over the feed (belongs on the video). */}
         {started && (
           <>
             <ArtificialHorizon />
             <CompassRibbon />
             <Reticle />
-            <TelemetryStrip />
             <Minimap />
             <VirtualJoysticks />
+            {/* Telemetry strip duplicates the right rail — only when rail is collapsed. */}
+            <div className="xl:hidden">
+              <TelemetryStrip />
+            </div>
           </>
         )}
-        {/* Link quality is useful whenever connected */}
-        {status !== "disconnected" && <LinkQuality />}
+        {/* Link quality lives in the right rail; mirror on the feed when collapsed. */}
+        {status !== "disconnected" && (
+          <div className="xl:hidden">
+            <LinkQuality />
+          </div>
+        )}
         <Alerts />
       </div>
 
       {/* Operator control deck (chrome at the edge, not over the feed) */}
-      <div className="flex items-center justify-between gap-3 border-t border-border bg-surface px-3 py-2">
+      <div
+        className="flex items-center justify-between gap-3 border-t border-border px-3 py-2"
+        style={{ background: "var(--glass-strong)", backdropFilter: "var(--blur-sm)" }}
+      >
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 pr-1">
             <span
