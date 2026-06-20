@@ -1,26 +1,209 @@
 @import "tailwindcss";
 
+/*
+ * Reactor Studio design system.
+ * A calm, warm, paper-light dashboard: white sidebar, soft sand viewport,
+ * muted khaki accent, monospace section labels. Mirrors the Reactor demo.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0efec;
+  --surface: #ffffff;
+  --surface-muted: #f7f6f3;
+  --viewport: #eceae6;
+  --foreground: #1b1a17;
+  --muted: #97948c;
+  --faint: #b7b4ac;
+  --label: #8d8a82;
+  --border: #e7e5df;
+  --border-strong: #dcd9d2;
+
+  /* Warm khaki accent (Generate button, toggles, focus) */
+  --accent: #c7ba93;
+  --accent-hover: #bcae81;
+  --accent-active: #ab9d6f;
+  --accent-foreground: #3a3522;
+  --accent-soft: #efece0;
+
+  --ready: #f0a324;
+  --danger: #c4604a;
+  --good: #7c9a6a;
+
+  --radius: 8px;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-viewport: var(--viewport);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-label: var(--label);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-ready: var(--ready);
+  --color-danger: var(--danger);
+  --color-good: var(--good);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --radius-card: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Monospace, letter-spaced uppercase section label used throughout. */
+.label-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--label);
+  font-weight: 500;
+}
+
+/* Thin custom scrollbars to keep panels quiet. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Pill button (START BUILDING links). */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
+  white-space: nowrap;
+}
+.pill:hover {
+  background: #f0eee9;
+  border-color: var(--border-strong);
+}
+.pill:active {
+  transform: translateY(0.5px);
+}
+
+/* Subtle key-cap used in the WASD / look controls. */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  user-select: none;
+  transition: all 0.1s ease;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+.keycap[data-active="true"] {
+  background: var(--accent);
+  border-color: var(--accent-active);
+  color: var(--accent-foreground);
+  box-shadow: 0 1px 0 var(--accent-active);
+}
+.keycap:not([data-disabled="true"]):hover {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.keycap[data-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+/* Range slider matching the warm accent theme. */
+.reactor-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.reactor-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: border-color 0.12s ease;
+}
+.reactor-range::-webkit-slider-thumb:hover {
+  border-color: var(--accent-active);
+}
+.reactor-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
