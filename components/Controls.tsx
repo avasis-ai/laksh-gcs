@@ -8,6 +8,8 @@ import { ArrowKey } from "./icons";
 // Physical keys we treat as held controls.
 type CtrlKey = "w" | "a" | "s" | "d" | "up" | "down" | "left" | "right";
 
+const EMPTY_KEYS: Set<CtrlKey> = new Set();
+
 const KEY_MAP: Record<string, CtrlKey> = {
   w: "w",
   a: "a",
@@ -106,7 +108,7 @@ export function Controls() {
       last.current.v = v;
       setLookV(v);
     }
-  }, [keys, setMovement, setLookH, setLookV]);
+  }, [keys, enabled, setMovement, setLookH, setLookV]);
 
   const bind = (k: CtrlKey) => ({
     onPointerDown: (e: React.PointerEvent) => {
@@ -115,7 +117,7 @@ export function Controls() {
     },
     onPointerUp: () => release(k),
     onPointerLeave: () => release(k),
-    "data-active": keys.has(k),
+    "data-active": enabled && keys.has(k),
     "data-disabled": !enabled,
   });
 
