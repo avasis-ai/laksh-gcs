@@ -1,0 +1,13 @@
+# Desktop (Tauri) + Rust — not used by the Vercel web build
+src-tauri
+.tauri-build-stash
+scripts/build-tauri.mjs
+
+# Stress-test harness + research docs — not needed at runtime
+scripts/stress
+docs
+
+# Local/build artifacts
+out
+.next
+node_modules
